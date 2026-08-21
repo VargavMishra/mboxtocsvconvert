@@ -1,4 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Unhide / Hide Toggle Button Elements
+    const toggleLocalTabBtn = document.getElementById('toggleLocalTabBtn');
+    const toggleLocalIcon = document.getElementById('toggleLocalIcon');
+    const toggleLocalText = document.getElementById('toggleLocalText');
+    const tabBar = document.getElementById('tabBar');
+
     // Tabs
     const tabUpload = document.getElementById('tabUpload');
     const tabLocal = document.getElementById('tabLocal');
@@ -36,6 +42,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedFile = null;
     let pollInterval = null;
     let currentTaskId = null;
+    let isLocalTabVisible = false;
+
+    // Toggle Unhide/Hide Local File Path Mode
+    toggleLocalTabBtn.addEventListener('click', () => {
+        isLocalTabVisible = !isLocalTabVisible;
+
+        if (isLocalTabVisible) {
+            tabBar.classList.remove('hidden');
+            toggleLocalText.textContent = 'Hide Local File Path Mode';
+            toggleLocalIcon.className = 'fa-solid fa-eye-slash text-amber-600';
+            tabLocal.click(); // Automatically switch to local tab when unhidden
+        } else {
+            tabBar.classList.add('hidden');
+            toggleLocalText.textContent = 'Show Local File Path Mode';
+            toggleLocalIcon.className = 'fa-solid fa-folder-open text-amber-600';
+            tabUpload.click(); // Switch back to default upload tab when hidden
+        }
+    });
 
     // Tab Switchers
     tabUpload.addEventListener('click', () => {

@@ -64,8 +64,20 @@
         <!-- Converter Card -->
         <div class="glass text-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8 border border-slate-200">
             
-            <!-- Mode Selector Tabs -->
-            <div class="flex border-b border-slate-200 mb-6 font-semibold text-sm">
+            <!-- Card Header & Unhide/Hide Toggle Button -->
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1.5">
+                    <i class="fa-solid fa-sliders text-blue-600"></i>
+                    <span>Conversion Options</span>
+                </h3>
+                <button id="toggleLocalTabBtn" class="text-xs font-semibold text-slate-600 hover:text-amber-700 bg-slate-100 hover:bg-amber-50 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-amber-300 transition-all flex items-center space-x-1.5 shadow-sm">
+                    <i id="toggleLocalIcon" class="fa-solid fa-folder-open text-amber-600"></i>
+                    <span id="toggleLocalText">Show Local File Path Mode</span>
+                </button>
+            </div>
+
+            <!-- Mode Selector Tabs (Hidden by Default) -->
+            <div id="tabBar" class="hidden flex border-b border-slate-200 mb-6 font-semibold text-sm">
                 <button id="tabUpload" class="py-2.5 px-5 border-b-2 border-blue-600 text-blue-600 focus:outline-none flex items-center space-x-2">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                     <span>Upload File</span>
@@ -76,7 +88,7 @@
                 </button>
             </div>
 
-            <!-- Tab 1: Upload Dropzone -->
+            <!-- Tab 1: Upload Dropzone (Default View) -->
             <div id="uploadContainer">
                 <div id="dropzone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center transition-all cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 group">
                     <input type="file" id="fileInput" class="hidden">
@@ -109,7 +121,7 @@
                 </div>
             </div>
 
-            <!-- Tab 2: Paste File Path Mode -->
+            <!-- Tab 2: Paste File Path Mode (Hidden by Default) -->
             <div id="localContainer" class="hidden space-y-4">
                 <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 flex items-start space-x-3">
                     <i class="fa-solid fa-lightbulb text-amber-600 text-lg mt-0.5"></i>
