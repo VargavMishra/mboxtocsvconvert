@@ -9,6 +9,9 @@ from email import policy
 from html.parser import HTMLParser
 import xml.etree.ElementTree as ET
 
+class ConversionCanceledError(Exception):
+    pass
+
 class HTMLFilter(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -171,9 +174,11 @@ def convert_mbox(input_path, output_path, progress_cb=None):
 
                     current_msg_lines = [line]
 
-                    if progress_cb and count % 500 == 0:
+                    if progress_cb and count % 200 == 0:
                         pct = min(99.0, (bytes_read / file_size) * 100) if file_size > 0 else 50.0
-                        progress_cb(pct, f"Processed {count} emails...")
+                        res = progress_cb(pct, f"Processed {count} emails...")
+                        if res is False:
+                            raise ConversionCanceledError("Conversion canceled by user.")
                 else:
                     current_msg_lines.append(line)
 
@@ -202,7 +207,8 @@ def flatten_dict(d, parent_key='', sep='.'):
 
 def convert_json(input_path, output_path, progress_cb=None):
     if progress_cb:
-        progress_cb(10.0, "Reading JSON file...")
+        if progress_cb(10.0, "Reading JSON file...") is False:
+            raise ConversionCanceledError("Conversion canceled by user.")
 
     with open(input_path, 'r', encoding='utf-8', errors='replace') as f:
         content = f.read().strip()
@@ -246,7 +252,8 @@ def convert_json(input_path, output_path, progress_cb=None):
         raise ValueError("No valid records found in JSON file.")
 
     if progress_cb:
-        progress_cb(50.0, "Writing CSV file...")
+        if progress_cb(50.0, "Writing CSV file...") is False:
+            raise ConversionCanceledError("Conversion canceled by user.")
 
     fieldnames = []
     for row in rows:
@@ -265,14 +272,16 @@ def convert_json(input_path, output_path, progress_cb=None):
 
 def convert_excel(input_path, output_path, progress_cb=None):
     if progress_cb:
-        progress_cb(20.0, "Reading Excel spreadsheet...")
+        if progress_cb(20.0, "Reading Excel spreadsheet...") is False:
+            raise ConversionCanceledError("Conversion canceled by user.")
 
     import pandas as pd
     excel_file = pd.ExcelFile(input_path)
     sheet_name = excel_file.sheet_names[0]
     
     if progress_cb:
-        progress_cb(50.0, f"Converting sheet '{sheet_name}' to CSV...")
+        if progress_cb(50.0, f"Converting sheet '{sheet_name}' to CSV...") is False:
+            raise ConversionCanceledError("Conversion canceled by user.")
 
     df = pd.read_excel(excel_file, sheet_name=sheet_name)
     df.to_csv(output_path, index=False, encoding='utf-8-sig')
@@ -283,7 +292,8 @@ def convert_excel(input_path, output_path, progress_cb=None):
 
 def convert_xml(input_path, output_path, progress_cb=None):
     if progress_cb:
-        progress_cb(20.0, "Parsing XML file...")
+        if progress_cb(20.0, "Parsing XML file...") is False:
+            raise ConversionCanceledError("Conversion canceled by user.")
 
     tree = ET.parse(input_path)
     root = tree.getroot()
@@ -318,7 +328,8 @@ def convert_xml(input_path, output_path, progress_cb=None):
 
 def convert_tsv(input_path, output_path, progress_cb=None):
     if progress_cb:
-        progress_cb(20.0, "Reading TSV / Delimited File...")
+        if progress_cb(20.0, "Reading TSV / Delimited File...") is False:
+            raise ConversionCanceledError("Conversion canceled by user.")
 
     count = 0
     with open(input_path, 'r', encoding='utf-8', errors='replace') as in_f:
@@ -332,6 +343,9 @@ def convert_tsv(input_path, output_path, progress_cb=None):
             for row in reader:
                 writer.writerow(row)
                 count += 1
+                if progress_cb and count % 5000 == 0:
+                    if progress_cb(50.0, f"Processed {count} lines...") is False:
+                        raise ConversionCanceledError("Conversion canceled by user.")
 
     if progress_cb:
         progress_cb(100.0, f"Completed: {count} lines converted.")

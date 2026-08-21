@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusMessage = document.getElementById('statusMessage');
     const progressPercent = document.getElementById('progressPercent');
     const progressBar = document.getElementById('progressBar');
+    const cancelBtn = document.getElementById('cancelBtn');
     
     const resultSection = document.getElementById('resultSection');
     const resultText = document.getElementById('resultText');
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let selectedFile = null;
     let pollInterval = null;
+    let currentTaskId = null;
 
     // Tab Switchers
     tabUpload.addEventListener('click', () => {
@@ -64,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultSection.classList.add('hidden');
         errorSection.classList.add('hidden');
         if (pollInterval) clearInterval(pollInterval);
+        currentTaskId = null;
     }
 
     // Drag and Drop
@@ -115,9 +118,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB per chunk
         const totalChunks = Math.ceil(selectedFile.size / CHUNK_SIZE);
         const uploadId = 'upload_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+        currentTaskId = uploadId;
 
         try {
             for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+                if (currentTaskId !== uploadId) return; // Canceled
+
                 const start = chunkIndex * CHUNK_SIZE;
                 const end = Math.min(selectedFile.size, start + CHUNK_SIZE);
                 const chunk = selectedFile.slice(start, end);
@@ -129,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.append('upload_id', uploadId);
                 formData.append('filename', selectedFile.name);
 
-                const uploadPct = Math.round(((chunkIndex + 1) / totalChunks) * 50); // Upload counts for 0-50%
+                const uploadPct = Math.round(((chunkIndex + 1) / totalChunks) * 50);
                 progressBar.style.width = `${uploadPct}%`;
                 progressPercent.textContent = `${uploadPct}%`;
                 statusMessage.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-blue-600 mr-2"></i> Uploading chunk ${chunkIndex + 1} of ${totalChunks}...`;
@@ -146,7 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const resData = await response.json();
                 if (resData.status === 'uploaded') {
-                    // Upload completed, start polling conversion task
                     statusMessage.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-blue-600 mr-2"></i> Upload complete! Converting file...`;
                     pollProgress(resData.task_id);
                     return;
@@ -189,12 +194,31 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
+            currentTaskId = data.task_id;
             pollProgress(data.task_id);
 
         } catch (err) {
             showError(err.message);
             resetConvertBtns();
         }
+    });
+
+    // Cancel Button Handler
+    cancelBtn.addEventListener('click', async () => {
+        if (!currentTaskId) return;
+
+        cancelBtn.disabled = true;
+        statusMessage.innerHTML = `<i class="fa-solid fa-ban text-rose-600 mr-2"></i> Canceling task...`;
+
+        try {
+            await fetch(`/api/cancel/${currentTaskId}`, { method: 'POST' });
+        } catch (e) {
+            console.error('Cancel request failed:', e);
+        }
+
+        if (pollInterval) clearInterval(pollInterval);
+        showError('Conversion was canceled by user.');
+        resetConvertBtns();
     });
 
     function pollProgress(taskId) {
@@ -216,6 +240,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (task.status === 'completed') {
                     clearInterval(pollInterval);
                     showSuccess(taskId, task.filename, task.message);
+                    resetConvertBtns();
+                } else if (task.status === 'canceled') {
+                    clearInterval(pollInterval);
+                    showError('Conversion was canceled by user.');
                     resetConvertBtns();
                 } else if (task.status === 'failed') {
                     clearInterval(pollInterval);
@@ -247,5 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
         convertBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         convertLocalBtn.disabled = false;
         convertLocalBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        cancelBtn.disabled = false;
     }
 });

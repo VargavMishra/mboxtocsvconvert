@@ -124,7 +124,7 @@
                 </button>
             </div>
 
-            <!-- Progress & Status Section -->
+            <!-- Progress & Status Section (With Cancel Button) -->
             <div id="progressSection" class="hidden mt-6">
                 <div class="flex justify-between items-center mb-2">
                     <span id="statusMessage" class="text-sm font-semibold text-slate-700 flex items-center">
@@ -132,8 +132,14 @@
                     </span>
                     <span id="progressPercent" class="text-sm font-bold text-blue-600">0%</span>
                 </div>
-                <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden shadow-inner">
+                <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden shadow-inner mb-4">
                     <div id="progressBar" class="bg-blue-600 h-3 rounded-full transition-all duration-300 w-0"></div>
+                </div>
+                <div class="flex justify-end">
+                    <button id="cancelBtn" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-4 py-2 rounded-lg font-semibold text-xs transition-colors flex items-center space-x-1.5 shadow-sm">
+                        <i class="fa-solid fa-ban"></i>
+                        <span>Cancel Conversion</span>
+                    </button>
                 </div>
             </div>
 
