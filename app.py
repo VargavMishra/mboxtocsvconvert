@@ -1,5 +1,6 @@
 import os
 import uuid
+import urllib.parse
 import threading
 from flask import Flask, render_template, request, jsonify, send_file
 from werkzeug.utils import secure_filename
@@ -26,6 +27,19 @@ def add_cors_headers(response):
 
 tasks = {}
 tasks_lock = threading.Lock()
+
+def clean_local_path(raw_path):
+    if not raw_path:
+        return ""
+    path = raw_path.strip(" \t\n\r\"'<>`")
+    if path.lower().startswith('file:///'):
+        path = path[8:]
+    elif path.lower().startswith('file://'):
+        path = path[7:]
+    path = urllib.parse.unquote(path)
+    path = os.path.expanduser(path)
+    path = os.path.normpath(path)
+    return path
 
 @app.route('/')
 def index():
@@ -95,13 +109,23 @@ def api_convert_local_path():
         return jsonify({'status': 'ok'}), 200
 
     data = request.get_json(silent=True) or {}
-    filepath = data.get('filepath', '').strip('"\': ')
+    raw_path = data.get('filepath', '')
+    filepath = clean_local_path(raw_path)
 
     if not filepath:
-        return jsonify({'error': 'Please provide a valid file path.'}), 400
+        return jsonify({'error': 'Please enter a valid file path on your computer.'}), 400
 
     if not os.path.isfile(filepath):
-        return jsonify({'error': f"File not found at path: {filepath}"}), 404
+        # Check if running on cloud server vs local
+        is_cloud = os.environ.get('RENDER') or os.environ.get('RAILWAY_STATIC_URL') or os.environ.get('HEROKU_APP_DIR')
+        if is_cloud:
+            return jsonify({
+                'error': f"File not found on server. Local File Path mode works when running locally on your computer (http://localhost:5000). On cloud-hosted websites (Render), please use the 'Upload File' tab!"
+            }), 404
+        else:
+            return jsonify({
+                'error': f"File not found at path: '{filepath}'. Please check the file path and make sure it exists on your computer."
+            }), 404
 
     filename = os.path.basename(filepath)
     ext = os.path.splitext(filename)[1].lower().strip('.')

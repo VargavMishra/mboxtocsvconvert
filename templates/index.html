@@ -115,13 +115,14 @@
                     <i class="fa-solid fa-lightbulb text-amber-600 text-lg mt-0.5"></i>
                     <div>
                         <p class="font-bold">Instant Conversion for Files on this Computer</p>
-                        <p>Since your multi-GB file is already saved locally on this machine, entering the direct file path converts it immediately without waiting for browser upload!</p>
+                        <p>When running locally (`http://localhost:5000`), paste any full file path below for zero-wait instant conversion without browser uploading!</p>
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">File Path on Computer</label>
-                    <input type="text" id="localFilePath" placeholder="C:\Users\Sanjay Mishra\Downloads\All mail Including Spam and Trash-002.mbox" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-slate-900 font-mono bg-white shadow-sm">
+                    <input type="text" id="localFilePath" placeholder="C:\path\to\your\file.mbox or /path/to/file.json" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-slate-900 font-mono bg-white shadow-sm">
+                    <p class="mt-1 text-xs text-slate-400">Supported formats: .mbox, .json, .xlsx, .xml, .tsv, .txt</p>
                 </div>
 
                 <button id="convertLocalBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition-colors flex items-center justify-center space-x-2">
