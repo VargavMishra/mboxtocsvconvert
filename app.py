@@ -41,6 +41,24 @@ def clean_local_path(raw_path):
     path = os.path.normpath(path)
     return path
 
+def find_output_file(task_id):
+    # 1. Check in-memory tasks dictionary
+    with tasks_lock:
+        task = tasks.get(task_id)
+        if task and task.get('out_path') and os.path.exists(task['out_path']):
+            return task['out_path'], task['filename']
+
+    # 2. Disk fallback: search outputs directory for matching task_id file
+    if os.path.exists(OUTPUT_FOLDER):
+        prefix = f"{task_id}_"
+        for fname in os.listdir(OUTPUT_FOLDER):
+            if fname.startswith(prefix):
+                out_path = os.path.join(OUTPUT_FOLDER, fname)
+                download_name = fname[len(prefix):]
+                return out_path, download_name
+
+    return None, None
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -94,12 +112,10 @@ def api_cancel(task_id):
 
     with tasks_lock:
         task = tasks.get(task_id)
-        if not task:
-            return jsonify({'error': 'Task not found'}), 404
-        
-        task['canceled'] = True
-        task['status'] = 'canceled'
-        task['message'] = 'Canceling conversion...'
+        if task:
+            task['canceled'] = True
+            task['status'] = 'canceled'
+            task['message'] = 'Canceling conversion...'
 
     return jsonify({'status': 'canceled', 'task_id': task_id})
 
@@ -211,21 +227,27 @@ def api_upload_chunk():
 def api_progress(task_id):
     with tasks_lock:
         task = tasks.get(task_id)
-        if not task:
-            return jsonify({'error': 'Task not found'}), 404
-        return jsonify(task)
+        if task:
+            return jsonify(task)
+
+    # Disk fallback for multi-worker Gunicorn / Render
+    out_path, filename = find_output_file(task_id)
+    if out_path:
+        return jsonify({
+            'status': 'completed',
+            'progress': 100.0,
+            'message': 'Successfully converted!',
+            'filename': filename
+        })
+
+    return jsonify({'error': 'Task not found'}), 404
 
 @app.route('/api/download/<task_id>', methods=['GET'])
 def api_download(task_id):
-    with tasks_lock:
-        task = tasks.get(task_id)
-        if not task or task['status'] != 'completed':
-            return jsonify({'error': 'File not ready or task not found'}), 404
-        out_path = task['out_path']
-        filename = task['filename']
+    out_path, filename = find_output_file(task_id)
 
-    if not os.path.exists(out_path):
-        return jsonify({'error': 'Output file not found'}), 404
+    if not out_path or not os.path.exists(out_path):
+        return jsonify({'error': 'File not found on server'}), 404
 
     return send_file(
         out_path,
