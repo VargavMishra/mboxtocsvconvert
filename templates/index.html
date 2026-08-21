@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal File to CSV Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+        .drag-over {
+            border-color: #3b82f6 !important;
+            background-color: #eff6ff !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between font-sans">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-950/80 px-6 py-4">
+        <div class="max-w-5xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-blue-600 rounded-lg text-white font-bold text-xl shadow-lg">
+                    <i class="fa-solid fa-file-csv"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white tracking-tight">ConvertAny to CSV</h1>
+                    <p class="text-xs text-slate-400">Universal File Converter & Email Parser</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 text-xs text-emerald-400 bg-emerald-950/50 border border-emerald-800/60 px-3 py-1.5 rounded-full">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Chunked Streaming & Local Mode</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-4xl mx-auto w-full px-4 py-8 flex flex-col justify-center">
+        
+        <!-- Hero Section -->
+        <div class="text-center mb-6">
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
+                Convert Any File into CSV
+            </h2>
+            <p class="text-slate-400 text-base max-w-xl mx-auto">
+                Upload or specify your <span class="text-blue-400 font-semibold">.mbox</span>, <span class="text-emerald-400 font-semibold">.json</span>, <span class="text-amber-400 font-semibold">.xlsx</span>, <span class="text-purple-400 font-semibold">.xml</span>, or <span class="text-cyan-400 font-semibold">.tsv</span> files.
+            </p>
+        </div>
+
+        <!-- Format Badges -->
+        <div class="flex flex-wrap items-center justify-center gap-2 mb-6 text-xs font-medium">
+            <span class="bg-slate-800 text-blue-300 px-3 py-1 rounded-full border border-slate-700"><i class="fa-solid fa-envelope mr-1"></i> .MBOX (Gmail Export)</span>
+            <span class="bg-slate-800 text-emerald-300 px-3 py-1 rounded-full border border-slate-700"><i class="fa-solid fa-code mr-1"></i> .JSON / .JSONL</span>
+            <span class="bg-slate-800 text-amber-300 px-3 py-1 rounded-full border border-slate-700"><i class="fa-solid fa-file-excel mr-1"></i> .XLSX / .XLS</span>
+            <span class="bg-slate-800 text-purple-300 px-3 py-1 rounded-full border border-slate-700"><i class="fa-solid fa-file-code mr-1"></i> .XML</span>
+            <span class="bg-slate-800 text-cyan-300 px-3 py-1 rounded-full border border-slate-700"><i class="fa-solid fa-table mr-1"></i> .TSV / .TXT</span>
+        </div>
+
+        <!-- Converter Card -->
+        <div class="glass text-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8 border border-slate-200">
+            
+            <!-- Mode Selector Tabs -->
+            <div class="flex border-b border-slate-200 mb-6 font-semibold text-sm">
+                <button id="tabUpload" class="py-2.5 px-5 border-b-2 border-blue-600 text-blue-600 focus:outline-none flex items-center space-x-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Upload File</span>
+                </button>
+                <button id="tabLocal" class="py-2.5 px-5 text-slate-500 hover:text-slate-700 focus:outline-none flex items-center space-x-2">
+                    <i class="fa-solid fa-folder-open text-amber-500"></i>
+                    <span>Local File Path <span class="ml-1 text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">Instant for Multi-GB</span></span>
+                </button>
+            </div>
+
+            <!-- Tab 1: Upload Dropzone -->
+            <div id="uploadContainer">
+                <div id="dropzone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center transition-all cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 group">
+                    <input type="file" id="fileInput" class="hidden">
+                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-800 mb-1">Drag & Drop your file here</h3>
+                    <p class="text-sm text-slate-500 mb-3">or <span class="text-blue-600 font-semibold underline">browse file</span> from your computer</p>
+                    <p class="text-xs text-slate-400">Uses chunked upload for maximum reliability on large files</p>
+                </div>
+
+                <div id="fileBanner" class="hidden mt-4 p-4 bg-slate-100 rounded-xl flex items-center justify-between border border-slate-200">
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <i class="fa-solid fa-file-lines text-blue-600 text-xl"></i>
+                        <div class="truncate">
+                            <p id="fileName" class="font-semibold text-slate-800 text-sm truncate"></p>
+                            <p id="fileSize" class="text-xs text-slate-500"></p>
+                        </div>
+                    </div>
+                    <button id="convertBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold text-sm shadow-md transition-colors flex items-center space-x-2">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Convert Now</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab 2: Local File Path Input -->
+            <div id="localContainer" class="hidden space-y-4">
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 flex items-start space-x-3">
+                    <i class="fa-solid fa-lightbulb text-amber-600 text-lg mt-0.5"></i>
+                    <div>
+                        <p class="font-bold">Instant Conversion for Files on this Computer</p>
+                        <p>Since your multi-GB file is already saved locally on this machine, entering the direct file path converts it immediately without waiting for browser upload!</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">File Path on Computer</label>
+                    <input type="text" id="localFilePath" placeholder="C:\Users\Sanjay Mishra\Downloads\All mail Including Spam and Trash-002.mbox" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-slate-900 font-mono bg-white shadow-sm">
+                </div>
+
+                <button id="convertLocalBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition-colors flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Convert Local File Directly</span>
+                </button>
+            </div>
+
+            <!-- Progress & Status Section -->
+            <div id="progressSection" class="hidden mt-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span id="statusMessage" class="text-sm font-semibold text-slate-700 flex items-center">
+                        <i class="fa-solid fa-spinner fa-spin text-blue-600 mr-2"></i> Processing file...
+                    </span>
+                    <span id="progressPercent" class="text-sm font-bold text-blue-600">0%</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden shadow-inner">
+                    <div id="progressBar" class="bg-blue-600 h-3 rounded-full transition-all duration-300 w-0"></div>
+                </div>
+            </div>
+
+            <!-- Download Result Box -->
+            <div id="resultSection" class="hidden mt-6 p-6 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-solid fa-circle-check text-2xl"></i>
+                </div>
+                <h4 id="resultTitle" class="text-lg font-bold text-emerald-900 mb-1">Conversion Complete!</h4>
+                <p id="resultText" class="text-sm text-emerald-700 mb-5">Your file has been converted to CSV successfully.</p>
+                
+                <a id="downloadBtn" href="#" class="inline-flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
+                    <i class="fa-solid fa-download text-lg"></i>
+                    <span>Download Converted CSV</span>
+                </a>
+            </div>
+
+            <!-- Error Box -->
+            <div id="errorSection" class="hidden mt-6 p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-sm flex items-center space-x-3">
+                <i class="fa-solid fa-circle-exclamation text-rose-600 text-xl"></i>
+                <span id="errorMessage">An error occurred during conversion.</span>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-950 py-4 text-center text-slate-500 text-xs">
+        <p>Built for local & cloud hosting (Render, Docker, Railway, AWS, DigitalOcean)</p>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
