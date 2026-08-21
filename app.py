@@ -17,6 +17,14 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = int(os.environ.get('MAX_CONTENT_LENGTH', 20 * 1024 * 1024 * 1024)) # 20 GB limit
 
+# Enable CORS for external frontends (e.g. Vercel)
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    return response
+
 tasks = {}
 tasks_lock = threading.Lock()
 
@@ -50,8 +58,11 @@ def run_conversion_task(task_id, in_path, out_path, ext, is_temp=True):
             except Exception:
                 pass
 
-@app.route('/api/convert_local_path', methods=['POST'])
+@app.route('/api/convert_local_path', methods=['POST', 'OPTIONS'])
 def api_convert_local_path():
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+
     data = request.get_json(silent=True) or {}
     filepath = data.get('filepath', '').strip('"\': ')
 
@@ -87,8 +98,11 @@ def api_convert_local_path():
         'status': 'running'
     })
 
-@app.route('/api/upload_chunk', methods=['POST'])
+@app.route('/api/upload_chunk', methods=['POST', 'OPTIONS'])
 def api_upload_chunk():
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+
     upload_id = request.form.get('upload_id')
     chunk_index = int(request.form.get('chunk_index', 0))
     total_chunks = int(request.form.get('total_chunks', 1))
@@ -100,11 +114,9 @@ def api_upload_chunk():
     chunk_file = request.files['chunk']
     in_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{upload_id}_{filename}")
 
-    # Append chunk bytes
     with open(in_path, 'ab') as f:
         f.write(chunk_file.read())
 
-    # If all chunks are uploaded, start conversion
     if chunk_index == total_chunks - 1:
         task_id = upload_id
         ext = os.path.splitext(filename)[1].lower().strip('.')
