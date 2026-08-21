@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileName = document.getElementById('fileName');
     const fileSize = document.getElementById('fileSize');
     const convertBtn = document.getElementById('convertBtn');
+    const removeFileBtn = document.getElementById('removeFileBtn');
 
     // Local Path Elements
     const localFilePath = document.getElementById('localFilePath');
@@ -69,6 +70,19 @@ document.addEventListener('DOMContentLoaded', () => {
         currentTaskId = null;
     }
 
+    function clearSelectedFile() {
+        selectedFile = null;
+        fileInput.value = '';
+        fileBanner.classList.add('hidden');
+        resetOutputState();
+    }
+
+    // Remove File Button Listener
+    removeFileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearSelectedFile();
+    });
+
     // Drag and Drop
     dropzone.addEventListener('click', () => fileInput.click());
 
@@ -106,7 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Convert via Chunked Upload
-    convertBtn.addEventListener('click', async () => {
+    convertBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
         if (!selectedFile) return;
 
         convertBtn.disabled = true;
