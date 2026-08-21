@@ -110,13 +110,13 @@ def api_convert_local_path():
 
     data = request.get_json(silent=True) or {}
     raw_path = data.get('filepath', '')
+    format_type = data.get('format_type', 'auto')
     filepath = clean_local_path(raw_path)
 
     if not filepath:
         return jsonify({'error': 'Please enter a valid file path on your computer.'}), 400
 
     if not os.path.isfile(filepath):
-        # Check if running on cloud server vs local
         is_cloud = os.environ.get('RENDER') or os.environ.get('RAILWAY_STATIC_URL') or os.environ.get('HEROKU_APP_DIR')
         if is_cloud:
             return jsonify({
@@ -128,9 +128,12 @@ def api_convert_local_path():
             }), 404
 
     filename = os.path.basename(filepath)
-    ext = os.path.splitext(filename)[1].lower().strip('.')
-    task_id = str(uuid.uuid4())
+    if format_type and format_type != 'auto':
+        ext = format_type
+    else:
+        ext = os.path.splitext(filename)[1].lower().strip('.')
 
+    task_id = str(uuid.uuid4())
     out_name = f"{os.path.splitext(filename)[0]}_converted.csv"
     out_path = os.path.join(app.config['OUTPUT_FOLDER'], f"{task_id}_{out_name}")
 

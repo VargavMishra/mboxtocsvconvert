@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const removeFileBtn = document.getElementById('removeFileBtn');
 
     // Local Path Elements
+    const localFileFormat = document.getElementById('localFileFormat');
     const localFilePath = document.getElementById('localFilePath');
     const convertLocalBtn = document.getElementById('convertLocalBtn');
 
@@ -181,6 +182,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Convert via Local File Path
     convertLocalBtn.addEventListener('click', async () => {
         const pathVal = localFilePath.value.trim();
+        const formatVal = localFileFormat.value;
+
         if (!pathVal) {
             showError('Please enter a valid file path on your computer.');
             return;
@@ -200,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/convert_local_path', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filepath: pathVal })
+                body: JSON.stringify({ filepath: pathVal, format_type: formatVal })
             });
 
             if (!response.ok) {

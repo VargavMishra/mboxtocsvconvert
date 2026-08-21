@@ -72,7 +72,7 @@
                 </button>
                 <button id="tabLocal" class="py-2.5 px-5 text-slate-500 hover:text-slate-700 focus:outline-none flex items-center space-x-2">
                     <i class="fa-solid fa-folder-open text-amber-500"></i>
-                    <span>Local File Path <span class="ml-1 text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">Instant for Multi-GB</span></span>
+                    <span>Paste File Path <span class="ml-1 text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">Instant for Multi-GB</span></span>
                 </button>
             </div>
 
@@ -109,25 +109,38 @@
                 </div>
             </div>
 
-            <!-- Tab 2: Local File Path Input -->
+            <!-- Tab 2: Paste File Path Mode -->
             <div id="localContainer" class="hidden space-y-4">
                 <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 flex items-start space-x-3">
                     <i class="fa-solid fa-lightbulb text-amber-600 text-lg mt-0.5"></i>
                     <div>
                         <p class="font-bold">Instant Conversion for Files on this Computer</p>
-                        <p>When running locally (`http://localhost:5000`), paste any full file path below for zero-wait instant conversion without browser uploading!</p>
+                        <p>When running locally (`http://localhost:5000`), select your file type, paste the file path below, and click convert to get your CSV immediately!</p>
                     </div>
                 </div>
 
+                <!-- File Format Selector -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">File Path on Computer</label>
-                    <input type="text" id="localFilePath" placeholder="C:\path\to\your\file.mbox or /path/to/file.json" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-slate-900 font-mono bg-white shadow-sm">
-                    <p class="mt-1 text-xs text-slate-400">Supported formats: .mbox, .json, .xlsx, .xml, .tsv, .txt</p>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">1. Select File Format</label>
+                    <select id="localFileFormat" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm text-slate-900 bg-white shadow-sm font-semibold">
+                        <option value="auto">Auto-Detect Format (Recommended)</option>
+                        <option value="mbox">Email Archive (.mbox / Gmail Export)</option>
+                        <option value="json">JSON / JSON Lines (.json, .jsonl)</option>
+                        <option value="xlsx">Excel Spreadsheet (.xlsx, .xls)</option>
+                        <option value="xml">XML Document (.xml)</option>
+                        <option value="tsv">Tab / Custom Delimited (.tsv, .txt)</option>
+                    </select>
+                </div>
+
+                <!-- File Path Input -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">2. Paste File Path on Computer</label>
+                    <input type="text" id="localFilePath" placeholder="C:\path\to\your\file.mbox or /path/to/file.json" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm text-slate-900 font-mono bg-white shadow-sm">
                 </div>
 
                 <button id="convertLocalBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition-colors flex items-center justify-center space-x-2">
-                    <i class="fa-solid fa-bolt"></i>
-                    <span>Convert Local File Directly</span>
+                    <i class="fa-solid fa-file-csv text-lg"></i>
+                    <span>Convert & Download CSV</span>
                 </button>
             </div>
 
